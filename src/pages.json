@@ -1,6 +1,13 @@
 {
 	"pages": [
 		{
+			"path": "pages/login/index",
+			"style": {
+				"navigationBarTitleText": "登录",
+				"disableScroll": true
+			}
+		},
+		{
 			"path": "pages/menu/index",
 			"style": {
 				"navigationBarTitleText": "菜谱"

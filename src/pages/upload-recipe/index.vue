@@ -54,7 +54,7 @@
 </template>
 
 <script>
-import { getApiUrl, API_PATHS } from '../../api/config'
+import { API_PATHS, request } from '../../api/config'
 
 export default {
   data() {
@@ -160,9 +160,9 @@ export default {
       try {
         uni.showLoading({ title: '提交中' })
         
-        // 发送请求创建菜谱
-        const res = await uni.request({
-          url: getApiUrl(API_PATHS.recipes),
+        // 发送请求创建菜谱，使用封装的request函数自动携带token
+        const res = await request({
+          url: API_PATHS.recipes,
           method: 'POST',
           data: this.recipeForm
         })

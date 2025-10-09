@@ -37,7 +37,7 @@
 </template>
 
 <script>
-import { getApiUrl, API_PATHS } from '../../api/config'
+import { API_PATHS, request } from '../../api/config'
 
 export default {
   data() {
@@ -79,9 +79,9 @@ export default {
         // 显示加载提示
         uni.showLoading({ title: '加载中' })
         
-        // 发送请求获取数据
-        const res = await uni.request({
-          url: getApiUrl(API_PATHS.recipes),
+        // 发送请求获取数据，使用封装的request函数自动携带token
+        const res = await request({
+          url: API_PATHS.recipes,
           method: 'GET'
         })
         
