@@ -1,16 +1,59 @@
 {
-	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+	"pages": [
+		{
+			"path": "pages/menu/index",
+			"style": {
+				"navigationBarTitleText": "菜谱"
+			}
+		},
 		{
 			"path": "pages/index/index",
 			"style": {
-				"navigationBarTitleText": "uni-app"
+				"navigationBarTitleText": "首页"
+			}
+		},
+		{
+			"path": "pages/orders/index",
+			"style": {
+				"navigationBarTitleText": "订单"
+			}
+		},
+		{
+			"path": "pages/profile/index",
+			"style": {
+				"navigationBarTitleText": "我的"
 			}
 		}
 	],
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
-		"navigationBarTitleText": "uni-app",
+		"navigationBarTitleText": "家庭点菜",
 		"navigationBarBackgroundColor": "#F8F8F8",
 		"backgroundColor": "#F8F8F8"
+	},
+	"tabBar": {
+		"color": "#999999",
+		"selectedColor": "#ff4d4f",
+		"backgroundColor": "#ffffff",
+		"list": [
+			{
+				"pagePath": "pages/menu/index",
+				"text": "菜谱",
+				"iconPath": "static/home.png",
+				"selectedIconPath": "static/home_s.png"
+			},
+			{
+				"pagePath": "pages/orders/index",
+				"text": "订单",
+				"iconPath": "static/order.png",
+				"selectedIconPath": "static/order_s.png"
+			},
+			{
+				"pagePath": "pages/profile/index",
+				"text": "我的",
+				"iconPath": "static/mine.png",
+				"selectedIconPath": "static/mine_s.png"
+			}
+		]
 	}
 }
