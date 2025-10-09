@@ -36,6 +36,12 @@
 			"style": {
 				"navigationBarTitleText": "上传菜谱"
 			}
+		},
+		{
+			"path": "pages/cart/index",
+			"style": {
+				"navigationBarTitleText": "购物车"
+			}
 		}
 	],
 	"globalStyle": {

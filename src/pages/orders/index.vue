@@ -4,33 +4,6 @@
       <text class="header-title">我的订单</text>
     </view>
     
-    <!-- 购物车列表 -->
-    <view class="cart-section">
-      <text class="section-title">购物车</text>
-      <view class="cart-list" v-if="cart.length > 0">
-        <view class="cart-item" v-for="(item, index) in cart" :key="`${item.id}-${index}`">
-          <image :src="item.image" mode="aspectFill" class="cart-image"></image>
-          <view class="cart-info">
-            <text class="cart-name">{{ item.name }}</text>
-            <text class="cart-ingredients">{{ item.ingredients }}</text>
-          </view>
-          <view class="remove-button" @click="removeFromCart(index)">
-            <text>×</text>
-          </view>
-        </view>
-      </view>
-      <view class="empty-cart" v-else>
-        <text>购物车是空的</text>
-      </view>
-    </view>
-    
-    <!-- 提交订单按钮 -->
-    <view class="submit-section">
-      <button class="submit-button" @click="submitOrder" :disabled="cart.length === 0">
-        提交订单
-      </button>
-    </view>
-    
     <!-- 历史订单 -->
     <view class="history-section" v-if="orders.length > 0">
       <text class="section-title">历史订单</text>
@@ -57,6 +30,11 @@
         </view>
       </view>
     </view>
+    
+    <!-- 空订单提示 -->
+    <view class="empty-orders" v-else>
+      <text>暂无订单记录</text>
+    </view>
   </view>
 </template>
 
@@ -64,63 +42,11 @@
 export default {
   data() {
     return {
-      // 购物车数据
-      cart: [],
       // 订单历史
       orders: []
     }
   },
   methods: {
-    // 从购物车移除
-    removeFromCart(index) {
-      this.cart.splice(index, 1)
-      this.saveCartToStorage()
-    },
-    
-    // 保存购物车数据到本地存储
-    saveCartToStorage() {
-      try {
-        uni.setStorageSync('cart', JSON.stringify(this.cart))
-      } catch (e) {
-        console.error('保存购物车数据失败', e)
-      }
-    },
-    
-    // 提交订单
-    submitOrder() {
-      if (this.cart.length === 0) {
-        uni.showToast({
-          title: '购物车为空',
-          icon: 'none'
-        })
-        return
-      }
-      
-      // 创建新订单
-      const newOrder = {
-        id: Date.now(), // 使用时间戳作为订单ID
-        createTime: new Date(),
-        status: 'pending', // pending: 待处理, completed: 已完成
-        items: [...this.cart]
-      }
-      
-      // 添加到订单历史
-      this.orders.unshift(newOrder)
-      
-      // 清空购物车
-      this.cart = []
-      
-      // 保存数据到本地存储
-      this.saveOrdersToStorage()
-      this.saveCartToStorage()
-      
-      // 提示订单提交成功
-      uni.showToast({
-        title: '订单提交成功',
-        icon: 'success'
-      })
-    },
-    
     // 保存订单历史到本地存储
     saveOrdersToStorage() {
       try {
@@ -162,16 +88,6 @@ export default {
     }
   },
   onLoad() {
-    // 从本地存储加载购物车数据
-    try {
-      const cartData = uni.getStorageSync('cart')
-      if (cartData) {
-        this.cart = JSON.parse(cartData)
-      }
-    } catch (e) {
-      console.error('加载购物车数据失败', e)
-    }
-    
     // 从本地存储加载订单历史
     try {
       const ordersData = uni.getStorageSync('orders')
@@ -213,86 +129,6 @@ export default {
   color: #333;
   margin: 30rpx 0 20rpx 0;
   display: block;
-}
-
-/* 购物车样式 */
-.cart-section {
-  background-color: #fff;
-  padding: 20rpx;
-  border-radius: 10rpx;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
-}
-
-.cart-item {
-  display: flex;
-  align-items: center;
-  padding: 20rpx 0;
-  border-bottom: 1px solid #eee;
-}
-
-.cart-item:last-child {
-  border-bottom: none;
-}
-
-.cart-image {
-  width: 120rpx;
-  height: 120rpx;
-  border-radius: 10rpx;
-}
-
-.cart-info {
-  flex: 1;
-  padding-left: 20rpx;
-}
-
-.cart-name {
-  font-size: 28rpx;
-  color: #333;
-  display: block;
-}
-
-.cart-ingredients {
-  font-size: 24rpx;
-  color: #999;
-  display: block;
-  margin-top: 10rpx;
-}
-
-.remove-button {
-  width: 60rpx;
-  height: 60rpx;
-  background-color: #ff4d4f;
-  color: #fff;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 40rpx;
-}
-
-.empty-cart {
-  text-align: center;
-  padding: 60rpx 0;
-  color: #999;
-  font-size: 28rpx;
-}
-
-/* 提交订单按钮 */
-.submit-section {
-  margin-top: 30rpx;
-}
-
-.submit-button {
-  background-color: #ff6b35;
-  color: #fff;
-  font-size: 32rpx;
-  height: 90rpx;
-  line-height: 90rpx;
-  border-radius: 45rpx;
-}
-
-.submit-button[disabled] {
-  background-color: #ccc;
 }
 
 /* 历史订单样式 */
@@ -364,5 +200,12 @@ export default {
   font-size: 26rpx;
   color: #333;
   padding: 10rpx 0;
+}
+
+.empty-orders {
+  text-align: center;
+  padding: 100rpx 0;
+  color: #999;
+  font-size: 28rpx;
 }
 </style>
