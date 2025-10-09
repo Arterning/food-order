@@ -71,10 +71,8 @@ export default {
   methods: {
     // 跳转到上传菜谱页面
     navigateToUpload() {
-      // 这里暂时先简单提示，后续会实现上传菜谱功能
-      uni.showToast({
-        title: '上传菜谱功能即将实现',
-        icon: 'none'
+      uni.navigateTo({
+        url: '/pages/upload-recipe/index'
       })
     },
     // 跳转到购物车页面

@@ -7,7 +7,8 @@ export const API_BASE_URL = process.env.VUE_APP_API_BASE_URL || 'http://127.0.0.
 export const API_PATHS = {
   // 菜谱相关接口
   recipes: '/recipes',
-  // 可以在这里添加更多API路径
+  // 文件上传接口
+  upload: '/upload'
 };
 
 // 生成完整的API URL
