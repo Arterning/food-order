@@ -51,79 +51,8 @@ export default {
       ],
       // 选中的分类
       selectedCategory: 'all',
-      // 菜品列表
-      foods: [
-        {
-          id: 1,
-          name: '红烧肉',
-          category: 'dish',
-          image: 'https://picsum.photos/seed/hongshaorou/300/200',
-          ingredients: '五花肉、酱油、冰糖'
-        },
-        {
-          id: 2,
-          name: '宫保鸡丁',
-          category: 'dish',
-          image: 'https://picsum.photos/seed/gongbaojiding/300/200',
-          ingredients: '鸡肉、花生米、干辣椒'
-        },
-        {
-          id: 3,
-          name: '清蒸鱼',
-          category: 'dish',
-          image: 'https://picsum.photos/seed/qingzhengyu/300/200',
-          ingredients: '鱼、姜片、葱段'
-        },
-        {
-          id: 4,
-          name: '番茄炒蛋',
-          category: 'dish',
-          image: 'https://picsum.photos/seed/fanqiechaodan/300/200',
-          ingredients: '番茄、鸡蛋、葱花'
-        },
-        {
-          id: 5,
-          name: '麻婆豆腐',
-          category: 'dish',
-          image: 'https://picsum.photos/seed/mapotofu/300/200',
-          ingredients: '豆腐、肉末、豆瓣酱'
-        },
-        {
-          id: 6,
-          name: '白米饭',
-          category: 'main',
-          image: 'https://picsum.photos/seed/mifan/300/200',
-          ingredients: '大米'
-        },
-        {
-          id: 7,
-          name: '馒头',
-          category: 'main',
-          image: 'https://picsum.photos/seed/mantou/300/200',
-          ingredients: '面粉、酵母'
-        },
-        {
-          id: 8,
-          name: '西红柿鸡蛋汤',
-          category: 'soup',
-          image: 'https://picsum.photos/seed/xihongshitang/300/200',
-          ingredients: '番茄、鸡蛋、葱花'
-        },
-        {
-          id: 9,
-          name: '西瓜',
-          category: 'dessert',
-          image: 'https://picsum.photos/seed/xigua/300/200',
-          ingredients: '西瓜'
-        },
-        {
-          id: 10,
-          name: '可乐',
-          category: 'drink',
-          image: 'https://picsum.photos/seed/kele/300/200',
-          ingredients: '可乐'
-        }
-      ],
+      // 菜品列表 - 初始化为空数组，将从API获取数据
+      foods: [],
       // 购物车数据
       cart: []
     }
@@ -142,6 +71,40 @@ export default {
     }
   },
   methods: {
+    // 从API获取菜品数据
+    async fetchFoodsFromAPI() {
+      try {
+        // 显示加载提示
+        uni.showLoading({ title: '加载中' })
+        
+        // 发送请求获取数据
+        const res = await uni.request({
+          url: 'http://127.0.0.1:5000/api/recipes',
+          method: 'GET'
+        })
+        
+        // 隐藏加载提示
+        uni.hideLoading()
+        
+        // 处理响应数据
+        if (res.statusCode === 200 && res.data) {
+          this.foods = res.data.recipes || res.data
+        } else {
+          uni.showToast({
+            title: '数据加载失败',
+            icon: 'none'
+          })
+        }
+      } catch (error) {
+        console.error('API请求失败', error)
+        uni.hideLoading()
+        uni.showToast({
+          title: '网络错误',
+          icon: 'none'
+        })
+      }
+    },
+    
     // 选择分类
     selectCategory(categoryId) {
       this.selectedCategory = categoryId
@@ -149,19 +112,14 @@ export default {
     
     // 添加到购物车
     addToCart(food) {
-      this.cart.push({ ...food })
-      // 提示添加成功
-      uni.showToast({
-        title: '已添加到购物车',
-        icon: 'none'
-      })
+      const existingItem = this.cart.find(item => item.id === food.id)
+      if (existingItem) {
+        existingItem.quantity += 1
+      } else {
+        this.cart.push({ ...food, quantity: 1 })
+      }
       
-      // 保存购物车数据到本地存储
-      this.saveCartToStorage()
-    },
-    
-    // 保存购物车数据到本地存储
-    saveCartToStorage() {
+      // 保存到本地存储
       try {
         uni.setStorageSync('cart', JSON.stringify(this.cart))
       } catch (e) {
@@ -169,13 +127,14 @@ export default {
       }
     },
     
-    // 跳转到购物车/订单页面
+    // 跳转到购物车页面
     goToCart() {
       uni.navigateTo({
-        url: '/pages/order/index'
+        url: '/pages/cart/index'
       })
     }
   },
+  
   onLoad() {
     // 从本地存储加载购物车数据
     try {
@@ -187,28 +146,8 @@ export default {
       console.error('加载购物车数据失败', e)
     }
     
-    // 从本地存储加载全局菜品数据
-    try {
-      const globalFoodsData = uni.getStorageSync('globalFoods')
-      if (globalFoodsData) {
-        const globalFoods = JSON.parse(globalFoodsData)
-        // 合并全局菜品数据和静态菜品数据（去重）
-        const allFoods = [...this.foods, ...globalFoods]
-        const uniqueFoods = []
-        const seenIds = new Set()
-        
-        for (const food of allFoods) {
-          if (!seenIds.has(food.id)) {
-            seenIds.add(food.id)
-            uniqueFoods.push(food)
-          }
-        }
-        
-        this.foods = uniqueFoods
-      }
-    } catch (e) {
-      console.error('加载全局菜品数据失败', e)
-    }
+    // 从API获取菜品数据
+    this.fetchFoodsFromAPI()
   }
 }
 </script>
