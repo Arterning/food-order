@@ -37,6 +37,8 @@
 </template>
 
 <script>
+import { getApiUrl, API_PATHS } from '../../api/config'
+
 export default {
   data() {
     return {
@@ -79,7 +81,7 @@ export default {
         
         // 发送请求获取数据
         const res = await uni.request({
-          url: 'http://127.0.0.1:5000/api/recipes',
+          url: getApiUrl(API_PATHS.recipes),
           method: 'GET'
         })
         
