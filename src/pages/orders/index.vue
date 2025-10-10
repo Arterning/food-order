@@ -10,7 +10,8 @@
       <view class="order-history">
         <view class="history-item" v-for="order in orders" :key="order.id">
           <view class="order-header">
-            <text class="order-time">{{ formatDate() }}</text>
+            <text class="order-time">{{ formatDate(order.created_at) }}</text>
+            <text class="order-username">{{ order.username || '用户' }}</text>
             <text class="order-status" :class="order.status">
               {{ order.status === 'pending' ? '待处理' : '已完成' }}
             </text>
@@ -84,8 +85,18 @@ export default {
     },
     
     // 格式化日期
-    formatDate() {
-      const date = new Date()
+    formatDate(dateString) {
+      if (!dateString) {
+        const date = new Date()
+        const year = date.getFullYear()
+        const month = (date.getMonth() + 1).toString().padStart(2, '0')
+        const day = date.getDate().toString().padStart(2, '0')
+        const hours = date.getHours().toString().padStart(2, '0')
+        const minutes = date.getMinutes().toString().padStart(2, '0')
+        return `${year}-${month}-${day} ${hours}:${minutes}`
+      }
+      
+      const date = new Date(dateString)
       const year = date.getFullYear()
       const month = (date.getMonth() + 1).toString().padStart(2, '0')
       const day = date.getDate().toString().padStart(2, '0')
@@ -203,6 +214,13 @@ export default {
 .order-time {
   font-size: 24rpx;
   color: #999;
+  margin-right: 10rpx;
+}
+
+.order-username {
+  font-size: 24rpx;
+  color: #333;
+  margin-right: 10rpx;
 }
 
 .order-status {
