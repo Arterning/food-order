@@ -15,9 +15,9 @@
       <!-- 菜品分类 -->
       <view class="form-item">
         <text class="label">菜品分类</text>
-        <picker class="picker" @change="onCategoryChange" :range="categories">
+        <picker class="picker" @change="onCategoryChange" :range="categories" range-key="name">
           <view class="picker-text">
-            {{ recipeForm.category || '请选择菜品分类' }}
+            {{ getCategoryName(recipeForm.category) || '请选择菜品分类' }}
           </view>
         </picker>
       </view>
@@ -65,7 +65,14 @@ export default {
         image: '',
         ingredients: ''
       },
-      categories: ['dish', 'soup', 'main', 'dessert', 'drink'],
+      categories: [
+        { id: 'all', name: '全部' }, 
+        { id: 'main', name: '主食' }, 
+        { id: 'dish', name: '菜品' }, 
+        { id: 'soup', name: '汤品' }, 
+        { id: 'dessert', name: '甜点' }, 
+        { id: 'drink', name: '饮品' }
+      ],
       isUploading: false
     }
   },
@@ -85,7 +92,14 @@ export default {
     
     // 选择菜品分类
     onCategoryChange(e) {
-      this.recipeForm.category = this.categories[e.detail.value]
+      this.recipeForm.category = this.categories[e.detail.value].id
+    },
+    
+    // 根据id获取分类名称
+    getCategoryName(id) {
+      if (!id) return ''
+      const category = this.categories.find(cat => cat.id === id)
+      return category ? category.name : ''
     },
     
     // 选择图片
@@ -106,15 +120,19 @@ export default {
     
     // 上传图片
     uploadImage(filePath) {
+      console.log(this.isUploading)
       if (this.isUploading) return
       
       this.isUploading = true
       uni.showLoading({ title: '上传中' })
       
       uni.uploadFile({
-        url: getApiUrl(API_PATHS.upload),
+        url: `${process.env.VUE_APP_API_BASE_URL}${API_PATHS.upload}`,
         filePath: filePath,
         name: 'file',
+        header: {
+            'Authorization': `Bearer ${uni.getStorageSync('token')}`
+        },
         success: (uploadRes) => {
           try {
             const data = JSON.parse(uploadRes.data)
@@ -242,7 +260,8 @@ export default {
   margin-bottom: 15rpx;
 }
 
-.input {
+.input,
+.picker-text {
   width: 100%;
   padding: 30rpx 20rpx;
   background-color: #fff;
@@ -253,7 +272,6 @@ export default {
   height: 90rpx;
 }
 
-.picker-text,
 .textarea {
   width: 100%;
   padding: 20rpx;
