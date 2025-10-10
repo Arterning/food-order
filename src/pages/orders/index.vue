@@ -15,6 +15,11 @@
             <text class="order-status" :class="order.status">
               {{ order.status === 'pending' ? '待处理' : '已完成' }}
             </text>
+          </view>
+          <view class="order-items">
+            <view class="order-item" v-for="item in order.items" :key="item.id">
+              <text>{{ item.recipe_name }}</text>
+            </view>
             <button 
               class="complete-button" 
               v-if="order.status === 'pending'" 
@@ -22,11 +27,6 @@
             >
               标记完成
             </button>
-          </view>
-          <view class="order-items">
-            <view class="order-item" v-for="item in order.items" :key="item.id">
-              <text>{{ item.recipe_name }}</text>
-            </view>
           </view>
         </view>
       </view>
@@ -183,11 +183,8 @@ export default {
 
 /* 历史订单样式 */
 .history-section {
-  background-color: #fff;
-  padding: 20rpx;
-  border-radius: 10rpx;
+  padding: 20rpx 0;
   margin-top: 30rpx;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
 }
 
 .order-history {
@@ -196,12 +193,15 @@ export default {
 }
 
 .history-item {
-  padding: 20rpx 0;
-  border-bottom: 1px solid #eee;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+  background-color: #fff;
+  border-radius: 10rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
 }
 
 .history-item:last-child {
-  border-bottom: none;
+  margin-bottom: 0;
 }
 
 .order-header {
@@ -251,6 +251,22 @@ export default {
 
 .order-items {
   margin-top: 20rpx;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.complete-button {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  font-size: 24rpx;
+  background-color: #1890ff;
+  color: #fff;
+  padding: 5rpx 20rpx;
+  border-radius: 20rpx;
+  min-height: 0;
+  line-height: 1.5;
 }
 
 .order-item {
