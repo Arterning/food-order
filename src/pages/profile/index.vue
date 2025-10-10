@@ -78,14 +78,13 @@ export default {
     // 跳转到购物车页面
     navigateToCart() {
       // 这里暂时先简单提示，后续会实现购物车页面
-      uni.showToast({
-        title: '购物车功能即将实现',
-        icon: 'none'
+      uni.navigateTo({
+        url: '/pages/cart/index'
       })
     },
     // 跳转到历史订单页面
     navigateToHistory() {
-      uni.navigateTo({
+      uni.switchTab({
         url: '/pages/orders/index'
       })
     }
