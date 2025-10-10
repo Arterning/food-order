@@ -122,6 +122,13 @@ export default {
     // 获取用户信息
     async fetchUserInfo() {
       try {
+        // 从本地存储获取用户信息
+        const user = uni.getStorageSync('user')
+        if (user) {
+          this.userInfo = user
+          return
+        }
+
         // 显示加载提示
         uni.showLoading({ title: '加载中' })
         

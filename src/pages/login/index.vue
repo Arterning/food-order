@@ -89,6 +89,9 @@ export default {
         if (res.statusCode === 200 && res.data.token) {
           // 保存token到本地存储
           uni.setStorageSync('token', res.data.token)
+
+          // 保存用户信息到本地存储
+          uni.setStorageSync('user', res.data.user)
           
           // 显示成功提示
           uni.showToast({
