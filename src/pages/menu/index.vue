@@ -150,6 +150,15 @@ export default {
     
     // 从API获取菜品数据
     this.fetchFoodsFromAPI()
+  },
+  
+  // 下拉刷新事件
+  onPullDownRefresh() {
+    // 重新获取菜品数据
+    this.fetchFoodsFromAPI().finally(() => {
+      // 结束下拉刷新动画
+      uni.stopPullDownRefresh()
+    })
   }
 }
 </script>

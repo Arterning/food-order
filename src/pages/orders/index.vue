@@ -172,6 +172,15 @@ export default {
   onLoad() {
     // 从API获取订单数据
     this.fetchOrdersFromAPI()
+  },
+  
+  // 下拉刷新事件
+  onPullDownRefresh() {
+    // 重新获取订单数据
+    this.fetchOrdersFromAPI().finally(() => {
+      // 结束下拉刷新动画
+      uni.stopPullDownRefresh()
+    })
   }
 }
 </script>
