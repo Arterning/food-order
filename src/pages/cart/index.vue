@@ -34,6 +34,8 @@
 </template>
 
 <script>
+import { API_PATHS, request } from '../../api/config'
+
 export default {
   data() {
     return {
@@ -73,8 +75,8 @@ export default {
       }
     },
     
-    // 提交订单
-    submitOrder() {
+    // 提交订单到后端API
+    async submitOrder() {
       if (this.cart.length === 0) {
         uni.showToast({
           title: '购物车为空',
@@ -83,62 +85,61 @@ export default {
         return
       }
       
-      // 创建新订单
-      const newOrder = {
-        id: Date.now(), // 使用时间戳作为订单ID
-        createTime: new Date(),
-        status: 'pending', // pending: 待处理, completed: 已完成
-        items: [...this.cart]
-      }
-      
-      // 从本地存储获取现有订单
-      let orders = []
       try {
-        const ordersData = uni.getStorageSync('orders')
-        if (ordersData) {
-          // 将字符串转换回Date对象
-          orders = JSON.parse(ordersData).map(order => ({
-            ...order,
-            createTime: new Date(order.createTime)
-          }))
-        }
-      } catch (e) {
-        console.error('加载订单数据失败', e)
-      }
-      
-      // 添加新订单到订单历史
-      orders.unshift(newOrder)
-      
-      // 保存订单历史到本地存储
-      try {
-        // 将Date对象转换为字符串
-        const ordersToSave = orders.map(order => ({
-          ...order,
-          createTime: order.createTime.toISOString()
-        }))
-        uni.setStorageSync('orders', JSON.stringify(ordersToSave))
-      } catch (e) {
-        console.error('保存订单数据失败', e)
-      }
-      
-      // 清空购物车
-      this.cart = []
-      
-      // 保存购物车数据
-      this.saveCartToStorage()
-      
-      // 提示订单提交成功
-      uni.showToast({
-        title: '订单提交成功',
-        icon: 'success'
-      })
-      
-      // 跳转到订单页面
-      setTimeout(() => {
-        uni.navigateTo({
-          url: '/pages/orders/index'
+        // 显示加载提示
+        uni.showLoading({ title: '提交中' })
+        
+        // 准备订单数据 - 提取recipe_ids
+        const recipeIds = this.cart.map(item => item.id)
+        
+        // 发送请求到后端API创建订单
+        const res = await request({
+          url: API_PATHS.orders,
+          method: 'POST',
+          data: {
+            recipe_ids: recipeIds
+          }
         })
-      }, 1500)
+        
+        // 隐藏加载提示
+        uni.hideLoading()
+        
+        // 处理响应数据
+        if (res.statusCode === 201 && res.data) {
+          // 清空购物车
+          this.cart = []
+          
+          // 保存购物车数据
+          this.saveCartToStorage()
+          
+          // 提示订单提交成功
+          uni.showToast({
+            title: '订单提交成功',
+            icon: 'success'
+          })
+          
+          // 跳转到订单页面
+          setTimeout(() => {
+            uni.navigateTo({
+              url: '/pages/orders/index'
+            })
+          }, 1500)
+        } else {
+          // 处理错误情况
+          const errorMessage = res.data?.error || '订单提交失败'
+          uni.showToast({
+            title: errorMessage,
+            icon: 'none'
+          })
+        }
+      } catch (error) {
+        console.error('提交订单失败', error)
+        uni.hideLoading()
+        uni.showToast({
+          title: '网络错误',
+          icon: 'none'
+        })
+      }
     }
   },
   onLoad() {

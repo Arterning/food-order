@@ -10,7 +10,7 @@
       <view class="order-history">
         <view class="history-item" v-for="order in orders" :key="order.id">
           <view class="order-header">
-            <text class="order-time">{{ formatDate(order.createTime) }}</text>
+            <text class="order-time">{{ formatDate() }}</text>
             <text class="order-status" :class="order.status">
               {{ order.status === 'pending' ? '待处理' : '已完成' }}
             </text>
@@ -24,7 +24,7 @@
           </view>
           <view class="order-items">
             <view class="order-item" v-for="item in order.items" :key="item.id">
-              <text>{{ item.name }}</text>
+              <text>{{ item.recipe_name }}</text>
             </view>
           </view>
         </view>
@@ -39,6 +39,8 @@
 </template>
 
 <script>
+import { API_PATHS, request } from '../../api/config'
+
 export default {
   data() {
     return {
@@ -47,25 +49,43 @@ export default {
     }
   },
   methods: {
-    // 保存订单历史到本地存储
-    saveOrdersToStorage() {
+    // 从API获取订单数据
+    async fetchOrdersFromAPI() {
       try {
-        // 将Date对象转换为字符串
-        const ordersToSave = this.orders.map(order => ({
-          ...order,
-          createTime: order.createTime.toISOString()
-        }))
-        uni.setStorageSync('orders', JSON.stringify(ordersToSave))
-      } catch (e) {
-        console.error('保存订单数据失败', e)
+        // 显示加载提示
+        uni.showLoading({ title: '加载中' })
+        
+        // 发送请求获取订单数据
+        const res = await request({
+          url: API_PATHS.orders,
+          method: 'GET'
+        })
+        
+        // 隐藏加载提示
+        uni.hideLoading()
+        
+        // 处理响应数据
+        if (res.statusCode === 200 && res.data) {
+          this.orders = res.data
+        } else {
+          uni.showToast({
+            title: '订单数据加载失败',
+            icon: 'none'
+          })
+        }
+      } catch (error) {
+        console.error('获取订单失败', error)
+        uni.hideLoading()
+        uni.showToast({
+          title: '网络错误',
+          icon: 'none'
+        })
       }
     },
     
     // 格式化日期
-    formatDate(date) {
-      if (typeof date === 'string') {
-        date = new Date(date)
-      }
+    formatDate() {
+      const date = new Date()
       const year = date.getFullYear()
       const month = (date.getMonth() + 1).toString().padStart(2, '0')
       const day = date.getDate().toString().padStart(2, '0')
@@ -75,32 +95,51 @@ export default {
     },
     
     // 标记订单为已完成
-    completeOrder(orderId) {
-      const order = this.orders.find(o => o.id === orderId)
-      if (order) {
-        order.status = 'completed'
-        this.saveOrdersToStorage()
+    async completeOrder(orderId) {
+      try {
+        // 显示加载提示
+        uni.showLoading({ title: '处理中' })
+        
+        // 发送请求更新订单状态
+        const res = await request({
+          url: `${API_PATHS.orders}/${orderId}/complete`,
+          method: 'PUT'
+        })
+        
+        // 隐藏加载提示
+        uni.hideLoading()
+        
+        // 处理响应数据
+        if (res.statusCode === 200) {
+          // 更新本地订单数据
+          const order = this.orders.find(o => o.id === orderId)
+          if (order) {
+            order.status = 'completed'
+          }
+          
+          uni.showToast({
+            title: '订单已完成',
+            icon: 'success'
+          })
+        } else {
+          uni.showToast({
+            title: '更新订单状态失败',
+            icon: 'none'
+          })
+        }
+      } catch (error) {
+        console.error('更新订单状态失败', error)
+        uni.hideLoading()
         uni.showToast({
-          title: '订单已完成',
-          icon: 'success'
+          title: '网络错误',
+          icon: 'none'
         })
       }
     }
   },
   onLoad() {
-    // 从本地存储加载订单历史
-    try {
-      const ordersData = uni.getStorageSync('orders')
-      if (ordersData) {
-        // 将字符串转换回Date对象
-        this.orders = JSON.parse(ordersData).map(order => ({
-          ...order,
-          createTime: new Date(order.createTime)
-        }))
-      }
-    } catch (e) {
-      console.error('加载订单数据失败', e)
-    }
+    // 从API获取订单数据
+    this.fetchOrdersFromAPI()
   }
 }
 </script>

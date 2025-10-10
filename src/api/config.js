@@ -10,7 +10,9 @@ export const API_PATHS = {
   // 文件上传接口
   upload: '/upload',
   // 用户认证接口
-  login: '/login'
+  login: '/login',
+  // 订单相关接口
+  orders: '/orders'
 };
 
 // 生成完整的API URL
