@@ -12,7 +12,9 @@ export const API_PATHS = {
   // 用户认证接口
   login: '/login',
   // 订单相关接口
-  orders: '/orders'
+  orders: '/orders',
+  // 用户信息接口
+  user: '/users/me'
 };
 
 // 生成完整的API URL
