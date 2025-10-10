@@ -4,11 +4,11 @@
       <text class="header-title">我的订单</text>
     </view>
     
-    <!-- 历史订单 -->
-    <view class="history-section" v-if="orders.length > 0">
-      <text class="section-title">历史订单</text>
+    <!-- 待处理订单 -->
+    <view class="pending-section" v-if="orders.filter(o => o.status === 'pending').length > 0">
+      <text class="section-title">待处理订单</text>
       <view class="order-history">
-        <view class="history-item" v-for="order in orders" :key="order.id">
+        <view class="history-item" v-for="order in orders.filter(o => o.status === 'pending')" :key="order.id">
           <view class="order-header">
             <text class="order-time">{{ formatDate(order.created_at) }}</text>
             <text class="order-username">{{ order.username || '用户' }}</text>
@@ -32,8 +32,29 @@
       </view>
     </view>
     
+    <!-- 历史订单 -->
+    <view class="history-section" v-if="orders.filter(o => o.status === 'completed').length > 0">
+      <text class="section-title">历史订单</text>
+      <view class="order-history">
+        <view class="history-item" v-for="order in orders.filter(o => o.status === 'completed')" :key="order.id">
+          <view class="order-header">
+            <text class="order-time">{{ formatDate(order.created_at) }}</text>
+            <text class="order-username">{{ order.username || '用户' }}</text>
+            <text class="order-status" :class="order.status">
+              {{ order.status === 'pending' ? '待处理' : '已完成' }}
+            </text>
+          </view>
+          <view class="order-items">
+            <view class="order-item" v-for="item in order.items" :key="item.id">
+              <text>{{ item.recipe_name }}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+    
     <!-- 空订单提示 -->
-    <view class="empty-orders" v-else>
+    <view class="empty-orders" v-if="orders.length === 0">
       <text>暂无订单记录</text>
     </view>
   </view>
@@ -181,7 +202,8 @@ export default {
   display: block;
 }
 
-/* 历史订单样式 */
+/* 订单区块样式 */
+.pending-section,
 .history-section {
   padding: 20rpx 0;
   margin-top: 30rpx;
