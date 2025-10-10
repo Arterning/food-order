@@ -242,7 +242,17 @@ export default {
   margin-bottom: 15rpx;
 }
 
-.input,
+.input {
+  width: 100%;
+  padding: 30rpx 20rpx;
+  background-color: #fff;
+  border-radius: 10rpx;
+  font-size: 30rpx;
+  color: #333;
+  box-sizing: border-box;
+  height: 90rpx;
+}
+
 .picker-text,
 .textarea {
   width: 100%;
