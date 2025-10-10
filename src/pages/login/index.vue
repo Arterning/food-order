@@ -1,7 +1,7 @@
 <template>
   <view class="login-container">
     <view class="logo-area">
-      <image src="/static/logo.png" class="logo" mode="aspectFit"></image>
+      <image src="/static/logo.jpg" class="logo" mode="aspectFit"></image>
       <text class="app-name">家庭点菜</text>
     </view>
     

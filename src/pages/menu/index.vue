@@ -21,7 +21,7 @@
           <text class="food-name">{{ food.name }}</text>
           <view class="food-details">
             <text class="food-ingredients">{{ food.ingredients }}</text>
-            <view class="add-button" @click="addToCart(food)">
+            <view class="add-button" @click="addToCart(food)" :class="{ 'added': isFoodInCart(food.id) }">
               <text>+</text>
             </view>
           </view>
@@ -60,19 +60,23 @@ export default {
     }
   },
   computed: {
-    // 根据选中的分类过滤菜品
-    filteredFoods() {
-      if (this.selectedCategory === 'all') {
-        return this.foods
-      }
-      return this.foods.filter(food => food.category === this.selectedCategory)
-    },
-    // 购物车数量
-    cartCount() {
+      // 根据选中的分类过滤菜品
+      filteredFoods() {
+        if (this.selectedCategory === 'all') {
+          return this.foods
+        }
+        return this.foods.filter(food => food.category === this.selectedCategory)
+      },
+      // 购物车数量
+      cartCount() {
       return this.cart.length
     }
-  },
+    },
   methods: {
+    // 检查商品是否在购物车中
+    isFoodInCart(foodId) {
+      return this.cart.some(item => item.id === foodId)
+    },
     // 从API获取菜品数据
     async fetchFoodsFromAPI() {
       try {
@@ -254,6 +258,11 @@ export default {
   justify-content: center;
   font-size: 40rpx;
   font-weight: bold;
+  transition: background-color 0.3s;
+}
+
+.add-button.added {
+  background-color: #ccc;
 }
 
 /* 购物车悬浮按钮样式 */
