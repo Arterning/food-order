@@ -119,11 +119,9 @@ export default {
           })
           
           // 跳转到订单页面
-          setTimeout(() => {
-            uni.navigateTo({
+          uni.switchTab({
               url: '/pages/orders/index'
-            })
-          }, 1500)
+          })
         } else {
           // 处理错误情况
           const errorMessage = res.data?.error || '订单提交失败'

@@ -4,67 +4,93 @@
       <text class="header-title">我的订单</text>
     </view>
     
-    <!-- 待处理订单 -->
-    <view class="pending-section" v-if="orders.filter(o => o.status === 'pending').length > 0">
-      <text class="section-title">待处理订单</text>
-      <view class="order-history">
-        <view class="history-item" v-for="order in orders.filter(o => o.status === 'pending')" :key="order.id">
-          <view class="order-header">
-            <text class="order-time">{{ formatDate(order.created_at) }}</text>
-            <text class="order-username">{{ order.username || '用户' }}</text>
-            <text class="order-status" :class="order.status">
-              {{ order.status === 'pending' ? '待处理' : '已完成' }}
-            </text>
-          </view>
-          <view class="order-items">
-            <view class="order-item" v-for="item in order.items" :key="item.id">
-              <text>{{ item.recipe_name }}</text>
+    <!-- Tab导航栏 -->
+    <view class="tab-container">
+      <view 
+        class="tab-item" 
+        :class="{ active: currentTab === 'pending' }"
+        @click="switchTab('pending')"
+      >
+        <text>待处理订单</text>
+        <view class="tab-indicator" v-if="currentTab === 'pending'"></view>
+      </view>
+      <view 
+        class="tab-item" 
+        :class="{ active: currentTab === 'completed' }"
+        @click="switchTab('completed')"
+      >
+        <text>历史订单</text>
+        <view class="tab-indicator" v-if="currentTab === 'completed'"></view>
+      </view>
+    </view>
+    
+    <!-- 订单列表 - 根据当前Tab显示 -->
+    <view class="order-content">
+      <!-- 待处理订单 -->
+      <view v-if="currentTab === 'pending'">
+        <view v-if="pendingOrders.length > 0" class="orders-list">
+          <view class="history-item" v-for="order in pendingOrders" :key="order.id">
+            <view class="order-header">
+              <text class="order-time">{{ formatDate(order.created_at) }}</text>
+              <text class="order-username">{{ order.username || '用户' }}</text>
+              <text class="order-status" :class="order.status">
+                {{ order.status === 'pending' ? '待处理' : '已完成' }}
+              </text>
             </view>
-            
-            <!-- 显示所有配料 -->
-            <view v-if="order.all_ingredients && order.all_ingredients.length > 0" class="order-ingredients">
-              <text class="ingredients-title">采购清单：</text>
-              <view class="ingredients-list">
-                <text v-for="(ingredient, index) in order.all_ingredients" :key="index" class="ingredient-item">
-                  {{ ingredient }}
-                  <text v-if="index < order.all_ingredients.length - 1">、</text>
-                </text>
+            <view class="order-items">
+              <view class="order-item" v-for="item in order.items" :key="item.id">
+                <text>{{ item.recipe_name }}</text>
+              </view>
+              
+              <!-- 显示所有配料 -->
+              <view v-if="order.all_ingredients && order.all_ingredients.length > 0" class="order-ingredients">
+                <text class="ingredients-title">采购清单：</text>
+                <view class="ingredients-list">
+                  <text v-for="(ingredient, index) in order.all_ingredients" :key="index" class="ingredient-item">
+                    {{ ingredient }}
+                    <text v-if="index < order.all_ingredients.length - 1">、</text>
+                  </text>
+                </view>
+              </view>
+              <button 
+                class="complete-button" 
+                @click="completeOrder(order.id)"
+              >
+                标记完成
+              </button>
+            </view>
+          </view>
+        </view>
+        <view v-else class="empty-orders">
+          <text>暂无待处理订单</text>
+        </view>
+      </view>
+      
+      <!-- 历史订单 -->
+      <view v-else-if="currentTab === 'completed'">
+        <view v-if="completedOrders.length > 0" class="orders-list">
+          <view class="history-item" v-for="order in completedOrders" :key="order.id">
+            <view class="order-header">
+              <text class="order-time">{{ formatDate(order.created_at) }}</text>
+              <text class="order-username">{{ order.username || '用户' }}</text>
+              <text class="order-status" :class="order.status">
+                {{ order.status === 'pending' ? '待处理' : '已完成' }}
+              </text>
+            </view>
+            <view class="order-items">
+              <view class="order-item" v-for="item in order.items" :key="item.id">
+                <text>{{ item.recipe_name }}</text>
               </view>
             </view>
-            <button 
-              class="complete-button" 
-              v-if="order.status === 'pending'" 
-              @click="completeOrder(order.id)"
-            >
-              标记完成
-            </button>
           </view>
+        </view>
+        <view v-else class="empty-orders">
+          <text>暂无历史订单</text>
         </view>
       </view>
     </view>
     
-    <!-- 历史订单 -->
-    <view class="history-section" v-if="orders.filter(o => o.status === 'completed').length > 0">
-      <text class="section-title">历史订单</text>
-      <view class="order-history">
-        <view class="history-item" v-for="order in orders.filter(o => o.status === 'completed')" :key="order.id">
-          <view class="order-header">
-            <text class="order-time">{{ formatDate(order.created_at) }}</text>
-            <text class="order-username">{{ order.username || '用户' }}</text>
-            <text class="order-status" :class="order.status">
-              {{ order.status === 'pending' ? '待处理' : '已完成' }}
-            </text>
-          </view>
-          <view class="order-items">
-            <view class="order-item" v-for="item in order.items" :key="item.id">
-              <text>{{ item.recipe_name }}</text>
-            </view>
-          </view>
-        </view>
-      </view>
-    </view>
-    
-    <!-- 空订单提示 -->
+    <!-- 全局空订单提示 -->
     <view class="empty-orders" v-if="orders.length === 0">
       <text>暂无订单记录</text>
     </view>
@@ -78,10 +104,29 @@ export default {
   data() {
     return {
       // 订单历史
-      orders: []
+      orders: [],
+      // 当前选中的Tab
+      currentTab: 'pending'
+    }
+  },
+  
+  computed: {
+    // 待处理订单列表
+    pendingOrders() {
+      return this.orders.filter(o => o.status === 'pending')
+    },
+    
+    // 已完成订单列表
+    completedOrders() {
+      return this.orders.filter(o => o.status === 'completed')
     }
   },
   methods: {
+    // 切换Tab
+    switchTab(tab) {
+      this.currentTab = tab
+    },
+    
     // 从API获取订单数据
     async fetchOrdersFromAPI() {
       try {
@@ -231,24 +276,46 @@ export default {
   color: #333;
 }
 
-.section-title {
-  font-size: 32rpx;
+/* Tab导航样式 */
+.tab-container {
+  display: flex;
+  background-color: #fff;
+  border-radius: 10rpx;
+  margin-top: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 25rpx 0;
+  position: relative;
+}
+
+.tab-item.active text {
+  color: #1890ff;
   font-weight: bold;
-  color: #333;
-  margin: 30rpx 0 20rpx 0;
-  display: block;
 }
 
-/* 订单区块样式 */
-.pending-section,
-.history-section {
-  padding: 20rpx 0;
-  margin-top: 30rpx;
+.tab-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 40rpx;
+  height: 6rpx;
+  background-color: #1890ff;
+  border-radius: 3rpx;
+  transform: translateX(-50%);
 }
 
-.order-history {
-  max-height: 600rpx;
-  overflow-y: auto;
+/* 订单内容区域 */
+.order-content {
+  padding-bottom: 20rpx;
+}
+
+/* 订单列表样式 */
+.orders-list {
+  /* 移除最大高度限制，允许展示更多数据 */
 }
 
 .history-item {
