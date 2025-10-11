@@ -21,8 +21,13 @@
           <text class="food-name">{{ food.name }}</text>
           <view class="food-details">
             <text class="food-ingredients">{{ food.ingredients }}</text>
-            <view class="add-button" @click="addToCart(food)" :class="{ 'added': isFoodInCart(food.id) }">
-              <text>+</text>
+            <view class="food-actions">
+              <view class="delete-button" @click="deleteRecipe(food)">
+                <text>删除</text>
+              </view>
+              <view class="add-button" @click="addToCart(food)" :class="{ 'added': isFoodInCart(food.id) }">
+                <text>+</text>
+              </view>
             </view>
           </view>
         </view>
@@ -138,6 +143,60 @@ export default {
       uni.navigateTo({
         url: '/pages/cart/index'
       })
+    },
+    
+    // 删除菜品
+    async deleteRecipe(food) {
+      try {
+        // 显示确认对话框
+        const res = await uni.showModal({
+          title: '确认删除',
+          content: `确定要删除菜品"${food.name}"吗？`,
+          confirmText: '删除',
+          cancelText: '取消',
+          showCancel: true
+        })
+        
+        // 如果用户确认删除
+        if (res.confirm) {
+          // 显示加载提示
+          uni.showLoading({ title: '删除中' })
+          
+          // 发送删除请求
+          const deleteRes = await request({
+            url: `${API_PATHS.recipes}/${food.id}`,
+            method: 'DELETE'
+          })
+          
+          // 隐藏加载提示
+          uni.hideLoading()
+          
+          // 处理响应
+          if (deleteRes.statusCode === 200 || deleteRes.statusCode === 204) {
+            // 从本地列表中移除菜品
+            this.foods = this.foods.filter(item => item.id !== food.id)
+            
+            // 显示删除成功提示
+            uni.showToast({
+              title: '删除成功',
+              icon: 'success'
+            })
+          } else {
+            // 显示删除失败提示
+            uni.showToast({
+              title: '删除失败，请重试',
+              icon: 'none'
+            })
+          }
+        }
+      } catch (error) {
+        console.error('删除菜品失败', error)
+        uni.hideLoading()
+        uni.showToast({
+          title: '网络错误，请重试',
+          icon: 'none'
+        })
+      }
     }
   },
   
@@ -234,8 +293,16 @@ export default {
 
 .food-details {
   display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.food-actions {
+  display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: center;
+  width: 100%;
+  margin-top: 10rpx;
 }
 
 .food-ingredients {
@@ -245,6 +312,19 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.delete-button {
+  font-size: 24rpx;
+  color: #ff4d4f;
+  padding: 4rpx 16rpx;
+  border-radius: 16rpx;
+  background-color: #fff2f0;
+  border: 1rpx solid #ffccc7;
+}
+
+.delete-button:active {
+  background-color: #ffccc7;
 }
 
 .add-button {
