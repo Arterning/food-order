@@ -1,7 +1,7 @@
 <template>
   <view class="upload-recipe-container">
     <view class="header">
-      <text class="title">上传菜谱</text>
+      <text class="title">{{ isEditMode ? '编辑菜谱' : '上传菜谱' }}</text>
       <text class="cancel-btn" @tap="cancelUpload">取消</text>
     </view>
     
@@ -68,14 +68,17 @@ export default {
       categories: [
         { id: 'all', name: '全部' },
         { id: 'main', name: '主食' },
-        { id: 'dish', name: '菜品' },
+        { id: 'dish', name: '荤菜' },
+        { id: 'su', name: '素菜' },
         { id: 'soup', name: '汤品' },
         { id: 'dessert', name: '甜点' },
         { id: 'drink', name: '饮品' },
         { id: 'snack', name: '小吃' },
         { id: 'other', name: '其他' },
       ],
-      isUploading: false
+      isUploading: false,
+      isEditMode: false,
+      recipeId: ''
     }
   },
   computed: {
@@ -86,7 +89,58 @@ export default {
              this.recipeForm.ingredients
     }
   },
+  onLoad(options) {
+    // 检查是否是编辑模式
+    if (options && options.mode === 'edit' && options.recipeId) {
+      this.isEditMode = true
+      this.recipeId = options.recipeId
+      // 加载菜品数据
+      this.loadRecipeData()
+    }
+  },
+  
   methods: {
+    // 加载菜品数据
+    async loadRecipeData() {
+      try {
+        uni.showLoading({ title: '加载中' })
+        
+        const res = await request({
+          url: `${API_PATHS.recipes}/${this.recipeId}`,
+          method: 'GET'
+        })
+        
+        uni.hideLoading()
+        
+        if (res.statusCode === 200 && res.data) {
+          this.recipeForm = {
+            name: res.data.name,
+            category: res.data.category,
+            image: res.data.image,
+            ingredients: res.data.ingredients
+          }
+        } else {
+          uni.showToast({
+            title: '加载菜品数据失败',
+            icon: 'none'
+          })
+          setTimeout(() => {
+            uni.navigateBack()
+          }, 1500)
+        }
+      } catch (error) {
+        console.error('加载菜品数据失败', error)
+        uni.hideLoading()
+        uni.showToast({
+          title: '网络错误',
+          icon: 'none'
+        })
+        setTimeout(() => {
+          uni.navigateBack()
+        }, 1500)
+      }
+    },
+    
     // 取消上传
     cancelUpload() {
       uni.navigateBack()
@@ -180,18 +234,28 @@ export default {
       try {
         uni.showLoading({ title: '提交中' })
         
-        // 发送请求创建菜谱，使用封装的request函数自动携带token
-        const res = await request({
-          url: API_PATHS.recipes,
-          method: 'POST',
-          data: this.recipeForm
-        })
+        let res
+        if (this.isEditMode) {
+          // 编辑模式 - 发送PUT请求
+          res = await request({
+            url: `${API_PATHS.recipes}/${this.recipeId}`,
+            method: 'PUT',
+            data: this.recipeForm
+          })
+        } else {
+          // 新增模式 - 发送POST请求
+          res = await request({
+            url: API_PATHS.recipes,
+            method: 'POST',
+            data: this.recipeForm
+          })
+        }
         
         uni.hideLoading()
         
-        if (res.statusCode === 201 && res.data) {
+        if (res.statusCode === 200 || res.statusCode === 201) {
           uni.showToast({
-            title: '上传成功',
+            title: this.isEditMode ? '编辑成功' : '上传成功',
             icon: 'success'
           })
           
@@ -201,12 +265,12 @@ export default {
           }, 1500)
         } else {
           uni.showToast({
-            title: res.data?.error || '上传失败',
+            title: res.data?.error || (this.isEditMode ? '编辑失败' : '上传失败'),
             icon: 'none'
           })
         }
       } catch (error) {
-        console.error('提交菜谱失败', error)
+        console.error(this.isEditMode ? '编辑菜谱失败' : '提交菜谱失败', error)
         uni.hideLoading()
         uni.showToast({
           title: '网络错误',

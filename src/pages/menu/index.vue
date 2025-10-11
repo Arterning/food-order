@@ -15,7 +15,7 @@
     
     <!-- 右侧菜品列表 -->
     <view class="food-list">
-      <view class="food-item" v-for="food in filteredFoods" :key="food.id">
+      <view class="food-item" v-for="food in filteredFoods" :key="food.id" @click="editRecipe(food)">
         <image :src="food.image" mode="aspectFill" class="food-image"></image>
         <view class="food-info">
           <text class="food-name">{{ food.name }}</text>
@@ -51,7 +51,8 @@ export default {
       categories: [
         { id: 'all', name: '全部' },
         { id: 'main', name: '主食' },
-        { id: 'dish', name: '菜品' },
+        { id: 'dish', name: '荤菜' },
+        { id: 'su', name: '素菜' },
         { id: 'soup', name: '汤品' },
         { id: 'dessert', name: '甜点' },
         { id: 'drink', name: '饮品' },
@@ -144,6 +145,14 @@ export default {
     goToCart() {
       uni.navigateTo({
         url: '/pages/cart/index'
+      })
+    },
+    
+    // 编辑菜品
+    editRecipe(food) {
+      // 跳转到编辑页面，并传递菜品ID
+      uni.navigateTo({
+        url: `/pages/upload-recipe/index?recipeId=${food.id}&mode=edit`
       })
     },
     
