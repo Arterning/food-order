@@ -208,7 +208,23 @@ export default {
           icon: 'none'
         })
       }
-    }
+    },
+
+    loadCartFromStorage() {
+      try {
+        const cartData = uni.getStorageSync('cart')
+        if (cartData) {
+          this.cart = JSON.parse(cartData)
+        }
+      } catch (e) {
+        console.error('加载购物车数据失败', e)
+      }
+    },
+  },
+
+  onShow() {
+    // 在页面显示时加载购物车数据
+    this.loadCartFromStorage()
   },
   
   onLoad() {
