@@ -42,7 +42,7 @@
       <!-- 菜品食材 -->
       <view class="form-item">
         <text class="label">菜品食材</text>
-        <textarea class="textarea" v-model="recipeForm.ingredients" placeholder="请输入菜品食材，用顿号或逗号分隔" />
+        <textarea class="textarea" v-model="recipeForm.ingredients" placeholder="请输入菜品食材，用空格分隔" />
       </view>
       
       <!-- 提交按钮 -->

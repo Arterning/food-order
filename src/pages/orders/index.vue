@@ -20,6 +20,17 @@
             <view class="order-item" v-for="item in order.items" :key="item.id">
               <text>{{ item.recipe_name }}</text>
             </view>
+            
+            <!-- 显示所有配料 -->
+            <view v-if="order.all_ingredients && order.all_ingredients.length > 0" class="order-ingredients">
+              <text class="ingredients-title">采购清单：</text>
+              <view class="ingredients-list">
+                <text v-for="(ingredient, index) in order.all_ingredients" :key="index" class="ingredient-item">
+                  {{ ingredient }}
+                  <text v-if="index < order.all_ingredients.length - 1">、</text>
+                </text>
+              </view>
+            </view>
             <button 
               class="complete-button" 
               v-if="order.status === 'pending'" 
@@ -126,6 +137,18 @@ export default {
       return `${year}-${month}-${day} ${hours}:${minutes}`
     },
     
+    // 测试数据 - 用于开发环境显示配料
+    mockOrderData() {
+      // 当没有真实数据时添加模拟数据（仅在开发环境使用）
+      if (process.env.NODE_ENV === 'development') {
+        this.orders.forEach(order => {
+          if (!order.all_ingredients) {
+            order.all_ingredients = ['玉米', '鱼肉', '排骨', '猪肉', '青菜', '豆腐']
+          }
+        })
+      }
+    },
+    
     // 标记订单为已完成
     async completeOrder(orderId) {
       try {
@@ -171,13 +194,18 @@ export default {
   },
   onLoad() {
     // 从API获取订单数据
-    this.fetchOrdersFromAPI()
+    this.fetchOrdersFromAPI().finally(() => {
+      // 添加模拟数据用于开发环境预览
+      this.mockOrderData()
+    })
   },
   
   // 下拉刷新事件
   onPullDownRefresh() {
     // 重新获取订单数据
     this.fetchOrdersFromAPI().finally(() => {
+      // 添加模拟数据用于开发环境预览
+      this.mockOrderData()
       // 结束下拉刷新动画
       uni.stopPullDownRefresh()
     })
@@ -285,6 +313,33 @@ export default {
   display: flex;
   flex-direction: column;
   position: relative;
+  padding-bottom: 30rpx;
+}
+
+.order-ingredients {
+  margin-top: 20rpx;
+  padding: 15rpx;
+  background-color: #f9f9f9;
+  border-radius: 8rpx;
+  border-left: 4rpx solid #fa8c16;
+}
+
+.ingredients-title {
+  font-size: 26rpx;
+  font-weight: bold;
+  color: #fa8c16;
+  margin-bottom: 10rpx;
+  display: block;
+}
+
+.ingredients-list {
+  font-size: 24rpx;
+  color: #666;
+  line-height: 1.5;
+}
+
+.ingredient-item {
+  color: #666;
 }
 
 .complete-button {
