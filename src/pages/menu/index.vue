@@ -15,8 +15,8 @@
     
     <!-- 右侧菜品列表 -->
     <view class="food-list">
-      <view class="food-item" v-for="food in filteredFoods" :key="food.id" @click="editRecipe(food)">
-        <image :src="food.image" mode="aspectFill" class="food-image"></image>
+      <view class="food-item" v-for="food in filteredFoods" :key="food.id">
+        <image @click="editRecipe(food)" :src="food.image" mode="aspectFill" class="food-image"></image>
         <view class="food-info">
           <text class="food-name">{{ food.name }}</text>
           <view class="food-details">
