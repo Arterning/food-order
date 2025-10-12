@@ -1,5 +1,7 @@
 <template>
   <view class="upload-recipe-container">
+    <!-- 用于图片压缩的canvas，设置为不可见 -->
+    <canvas canvas-id="compressCanvas" style="width: 300px; height: 300px; position: fixed; left: -9999px;"></canvas>
     <view class="header">
       <text class="title">{{ isEditMode ? '编辑菜谱' : '上传菜谱' }}</text>
       <text class="cancel-btn" @tap="cancelUpload">取消</text>
@@ -162,14 +164,77 @@ export default {
     chooseImage() {
       uni.chooseImage({
         count: 1,
-        sizeType: ['original', 'compressed'],
+        sizeType: ['original'], // 先获取原图，然后我们自己压缩
         sourceType: ['album', 'camera'],
         success: (res) => {
           const tempFilePath = res.tempFilePaths[0]
-          this.uploadImage(tempFilePath)
+          // 先压缩图片，再上传
+          this.compressImage(tempFilePath)
         },
         fail: (err) => {
           console.error('选择图片失败', err)
+        }
+      })
+    },
+    
+    // 压缩图片
+    compressImage(filePath) {
+      // 获取图片信息
+      uni.getImageInfo({
+        src: filePath,
+        success: (imageInfo) => {
+          // 创建canvas上下文进行压缩
+          const ctx = uni.createCanvasContext('compressCanvas')
+          
+          // 定义压缩参数
+          const maxWidth = 1000 // 最大宽度
+          const maxHeight = 1000 // 最大高度
+          const quality = 0.8 // 压缩质量 (0-1)
+          
+          // 计算压缩后的宽高
+          let targetWidth = imageInfo.width
+          let targetHeight = imageInfo.height
+          
+          if (imageInfo.width > maxWidth || imageInfo.height > maxHeight) {
+            const aspectRatio = imageInfo.width / imageInfo.height
+            if (aspectRatio > 1) {
+              // 横屏图片
+              targetWidth = maxWidth
+              targetHeight = Math.floor(maxWidth / aspectRatio)
+            } else {
+              // 竖屏图片
+              targetHeight = maxHeight
+              targetWidth = Math.floor(maxHeight * aspectRatio)
+            }
+          }
+          
+          // 在canvas上绘制图片
+          ctx.drawImage(filePath, 0, 0, targetWidth, targetHeight)
+          ctx.draw(false, () => {
+            // 将canvas内容转换为临时文件
+            uni.canvasToTempFilePath({
+              canvasId: 'compressCanvas',
+              x: 0,
+              y: 0,
+              width: targetWidth,
+              height: targetHeight,
+              quality: quality,
+              success: (res) => {
+                // 上传压缩后的图片
+                this.uploadImage(res.tempFilePath)
+              },
+              fail: (err) => {
+                console.error('图片压缩失败', err)
+                // 如果压缩失败，使用原图上传
+                this.uploadImage(filePath)
+              }
+            })
+          })
+        },
+        fail: (err) => {
+          console.error('获取图片信息失败', err)
+          // 如果获取信息失败，使用原图上传
+          this.uploadImage(filePath)
         }
       })
     },
