@@ -57,7 +57,8 @@ export default {
         { id: 'dessert', name: '甜点' },
         { id: 'drink', name: '饮品' },
         { id: 'snack', name: '小吃' },
-        { id: 'other', name: '其他' },
+        { id: 'md', name: '面点' },
+        { id: 'rice', name: '粥' },
       ],
       // 选中的分类
       selectedCategory: 'all',

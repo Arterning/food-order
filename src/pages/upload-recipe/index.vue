@@ -29,8 +29,8 @@
         <text class="label">菜品图片</text>
         <view class="image-upload-area">
           <view class="image-preview" v-if="recipeForm.image">
-            <image :src="recipeForm.image" mode="aspectFill"></image>
-            <view class="remove-image" @tap="removeImage">
+            <image :src="recipeForm.image" mode="aspectFill" @tap="previewImage"></image>
+            <view class="remove-image" @tap.stop="removeImage">
               <text>×</text>
             </view>
           </view>
@@ -68,7 +68,6 @@ export default {
         ingredients: ''
       },
       categories: [
-        { id: 'all', name: '全部' },
         { id: 'main', name: '主食' },
         { id: 'dish', name: '荤菜' },
         { id: 'su', name: '素菜' },
@@ -76,7 +75,9 @@ export default {
         { id: 'dessert', name: '甜点' },
         { id: 'drink', name: '饮品' },
         { id: 'snack', name: '小吃' },
-        { id: 'other', name: '其他' },
+        { id: 'md', name: '面点' },
+        { id: 'rice', name: '粥' },
+        { id: 'all', name: '全部' },
       ],
       isUploading: false,
       isEditMode: false,
@@ -311,6 +312,17 @@ export default {
     // 移除图片
     removeImage() {
       this.recipeForm.image = ''
+    },
+    
+    // 预览图片
+    previewImage() {
+      if (this.recipeForm.image) {
+        uni.previewImage({
+          current: this.recipeForm.image,
+          urls: [this.recipeForm.image],
+          showmenu: true
+        })
+      }
     },
     
     // 提交菜谱
