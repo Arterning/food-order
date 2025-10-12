@@ -179,61 +179,82 @@ export default {
     
     // 压缩图片
     compressImage(filePath) {
-      // 获取图片信息
-      uni.getImageInfo({
-        src: filePath,
-        success: (imageInfo) => {
-          // 创建canvas上下文进行压缩
-          const ctx = uni.createCanvasContext('compressCanvas')
+      // 获取文件信息，判断文件大小
+      uni.getFileInfo({
+        filePath: filePath,
+        success: (fileInfo) => {
+          // 1MB = 1048576字节
+          const ONE_MB = 1048576
           
-          // 定义压缩参数
-          const maxWidth = 1000 // 最大宽度
-          const maxHeight = 1000 // 最大高度
-          const quality = 0.8 // 压缩质量 (0-1)
-          
-          // 计算压缩后的宽高
-          let targetWidth = imageInfo.width
-          let targetHeight = imageInfo.height
-          
-          if (imageInfo.width > maxWidth || imageInfo.height > maxHeight) {
-            const aspectRatio = imageInfo.width / imageInfo.height
-            if (aspectRatio > 1) {
-              // 横屏图片
-              targetWidth = maxWidth
-              targetHeight = Math.floor(maxWidth / aspectRatio)
-            } else {
-              // 竖屏图片
-              targetHeight = maxHeight
-              targetWidth = Math.floor(maxHeight * aspectRatio)
-            }
+          // 如果文件小于1MB，直接上传原图
+          if (fileInfo.size < ONE_MB) {
+            this.uploadImage(filePath)
+            return
           }
           
-          // 在canvas上绘制图片
-          ctx.drawImage(filePath, 0, 0, targetWidth, targetHeight)
-          ctx.draw(false, () => {
-            // 将canvas内容转换为临时文件
-            uni.canvasToTempFilePath({
-              canvasId: 'compressCanvas',
-              x: 0,
-              y: 0,
-              width: targetWidth,
-              height: targetHeight,
-              quality: quality,
-              success: (res) => {
-                // 上传压缩后的图片
-                this.uploadImage(res.tempFilePath)
-              },
-              fail: (err) => {
-                console.error('图片压缩失败', err)
-                // 如果压缩失败，使用原图上传
-                this.uploadImage(filePath)
+          // 大于等于1MB，进行压缩处理
+          // 获取图片信息
+          uni.getImageInfo({
+            src: filePath,
+            success: (imageInfo) => {
+              // 创建canvas上下文进行压缩
+              const ctx = uni.createCanvasContext('compressCanvas')
+              
+              // 定义压缩参数
+              const maxWidth = 1000 // 最大宽度
+              const maxHeight = 1000 // 最大高度
+              const quality = 0.8 // 压缩质量 (0-1)
+              
+              // 计算压缩后的宽高
+              let targetWidth = imageInfo.width
+              let targetHeight = imageInfo.height
+              
+              if (imageInfo.width > maxWidth || imageInfo.height > maxHeight) {
+                const aspectRatio = imageInfo.width / imageInfo.height
+                if (aspectRatio > 1) {
+                  // 横屏图片
+                  targetWidth = maxWidth
+                  targetHeight = Math.floor(maxWidth / aspectRatio)
+                } else {
+                  // 竖屏图片
+                  targetHeight = maxHeight
+                  targetWidth = Math.floor(maxHeight * aspectRatio)
+                }
               }
-            })
+              
+              // 在canvas上绘制图片
+              ctx.drawImage(filePath, 0, 0, targetWidth, targetHeight)
+              ctx.draw(false, () => {
+                // 将canvas内容转换为临时文件
+                uni.canvasToTempFilePath({
+                  canvasId: 'compressCanvas',
+                  x: 0,
+                  y: 0,
+                  width: targetWidth,
+                  height: targetHeight,
+                  quality: quality,
+                  success: (res) => {
+                    // 上传压缩后的图片
+                    this.uploadImage(res.tempFilePath)
+                  },
+                  fail: (err) => {
+                    console.error('图片压缩失败', err)
+                    // 如果压缩失败，使用原图上传
+                    this.uploadImage(filePath)
+                  }
+                })
+              })
+            },
+            fail: (err) => {
+              console.error('获取图片信息失败', err)
+              // 如果获取信息失败，使用原图上传
+              this.uploadImage(filePath)
+            }
           })
         },
         fail: (err) => {
-          console.error('获取图片信息失败', err)
-          // 如果获取信息失败，使用原图上传
+          console.error('获取文件信息失败', err)
+          // 如果获取文件信息失败，使用原图上传
           this.uploadImage(filePath)
         }
       })
