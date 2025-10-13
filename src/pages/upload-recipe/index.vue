@@ -1,7 +1,7 @@
 <template>
   <view class="upload-recipe-container">
-    <!-- 用于图片压缩的canvas，设置为不可见 -->
-    <canvas canvas-id="compressCanvas" style="width: 300px; height: 300px; position: fixed; left: -9999px;"></canvas>
+    <!-- 用于图片压缩的canvas，设置为不可见且尺寸足够大 -->
+    <canvas canvas-id="compressCanvas" style="width: 1500px; height: 1500px; position: fixed; left: -9999px;"></canvas>
     <view class="header">
       <text class="title">{{ isEditMode ? '编辑菜谱' : '上传菜谱' }}</text>
       <text class="cancel-btn" @tap="cancelUpload">取消</text>
@@ -204,9 +204,9 @@ export default {
               // 定义压缩参数
               const maxWidth = 1000 // 最大宽度
               const maxHeight = 1000 // 最大高度
-              const quality = 0.8 // 压缩质量 (0-1)
+              const quality = 0.5 // 压缩质量降低一点以获得更小的文件大小
               
-              // 计算压缩后的宽高
+              // 计算压缩后的宽高 - 保持原图比例，不裁剪
               let targetWidth = imageInfo.width
               let targetHeight = imageInfo.height
               
@@ -223,7 +223,7 @@ export default {
                 }
               }
               
-              // 在canvas上绘制图片
+              // 在canvas上绘制图片 - uni-app会自动根据drawImage的参数调整绘制区域
               ctx.drawImage(filePath, 0, 0, targetWidth, targetHeight)
               ctx.draw(false, () => {
                 // 将canvas内容转换为临时文件
